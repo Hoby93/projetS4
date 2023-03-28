@@ -6,8 +6,11 @@
 package etu1839.framwork.servlet;
 
 import etu1839.framework.Mapping;
+import etu1839.framework.annotation.AnnotationUrl;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,6 +39,30 @@ public class FrontServlet extends HttpServlet {
 //        response.setContentType("text/html;charset=UTF-8");
        
     }
+    
+    @Override
+    public  void init() {
+        File pack = new File("C:\\Users\\ITU\\Documents\\NetBeansProjects\\FrameWork\\build\\web\\WEB-INF\\classes\\model");
+        File[] allClass = pack.listFiles();
+
+        for(int i = 0; i < allClass.length; i++) {
+            try {
+                String className = "model." + allClass[i].getName().split(".class")[0];
+                Class MyClass = Class.forName(className);
+                //System.out.println("Name : " + MyClass.getName());
+
+                Method[] listMethode = MyClass.getDeclaredMethods();
+                for(int x = 0; x < listMethode.length; x++) {
+                    if(listMethode[x].getAnnotation(AnnotationUrl.class) != null) {
+                        Mapping mapping = new Mapping(className, listMethode[x].getName());
+                        mappingUrls.put(listMethode[x].getAnnotation(AnnotationUrl.class).url(), mapping);
+                    }
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
