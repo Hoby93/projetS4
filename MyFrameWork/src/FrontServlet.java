@@ -11,6 +11,8 @@ import etu1839.framework.Utilitaire;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -51,11 +53,13 @@ public class FrontServlet extends HttpServlet {
                     ModelView view = (ModelView) function.invoke(classInstance.newInstance());
                     dispatcher = request.getRequestDispatcher("/web/" + view.getView());
 
-         //               System.out.println("className : " + classInstance.getName());
-         //               System.out.println("methodeName : " + function.getName());
-         //               System.out.println("modelView : " + view.getView());
+                       System.out.println("countData : " + view.getData().size());
+                       System.out.println("modelView : " + view.getView());
 
-                   request.setAttribute("message", "Hello from FrontServlet + Employer");
+                    for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
+                        request.setAttribute(entry.getKey(), entry.getValue());
+                        System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
+                    }
                } 
                dispatcher.forward(request, response);
         } catch (Exception e) {
