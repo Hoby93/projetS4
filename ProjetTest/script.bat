@@ -12,7 +12,7 @@ javac -cp .\WEB-INF\lib\*.jar -d .\WEB-INF\classes src\*.java
 cd "C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\ProjetTest"
 jar -cvf ProjetdeTest.war .\
 
-copy etu1839.jar "C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps"
+copy ProjetdeTest.war "C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps"
 
 
 
