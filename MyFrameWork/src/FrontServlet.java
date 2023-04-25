@@ -10,8 +10,10 @@ import etu1839.framework.ModelView;
 import etu1839.framework.Utilitaire;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Date;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -35,6 +37,51 @@ public class FrontServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+
+    public String setterName(String attr) {
+        return "set" + attr.substring(0, 1).toUpperCase() + attr.substring(1);
+    }
+
+    public void callSetter(Method theSetter, Object objectInst, Object objectVal) {
+        try {
+            if (objectVal instanceof Integer) {
+                //int intValue = (int) objectVal; // cast to int
+                theSetter.invoke(objectInst, (int) objectVal);
+            } else if (objectVal instanceof Double) {
+                //double doubleValue = (double) objectVal; // cast to double
+                theSetter.invoke(objectInst, (double) objectVal);
+            } else if (objectVal instanceof Date) {
+                //Date dateValue = (Date) objectVal; // cast to Date
+                theSetter.invoke(objectInst, (Date) objectVal);
+            } else {
+                //String stringValue = (String) objectVal; // cast to String
+                theSetter.invoke(objectInst, (String) objectVal);
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        } 
+    }
+
+    public void fillAttribute(HttpServletRequest request, Object objectInst) {
+        try {
+            Field[] attributs = objectInst.getClass().getDeclaredFields();
+            for(Field field : attributs) {
+                String value = request.getParameter(field.getName());
+                if(value != null) {
+                    Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
+                    Object attr = new Utilitaire().castToAppropriateClass(value, field.getType());
+                    //setter.invoke(objectInst, value);
+                    callSetter(setter, objectInst, attr);
+
+                    System.out.println(field.getName() + ": " + value);
+                    System.out.println("we will call --> " + setterName(field.getName()));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+      }
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
           try {
@@ -48,9 +95,12 @@ public class FrontServlet extends HttpServlet {
                     Mapping relative = mappingUrls.get(slug);
 
                     Class<?> classInstance = Class.forName(relative.getClassName());
-                    Method function = classInstance.getMethod(relative.getMethode());
+                    Object objectInstance = classInstance.newInstance();
+                    fillAttribute(request, objectInstance);
+                    
+                    Method function = objectInstance.getClass().getMethod(relative.getMethode());
 
-                    ModelView view = (ModelView) function.invoke(classInstance.newInstance());
+                    ModelView view = (ModelView) function.invoke(objectInstance);
                     dispatcher = request.getRequestDispatcher("/web/" + view.getView());
 
                        System.out.println("countData : " + view.getData().size());
@@ -60,7 +110,7 @@ public class FrontServlet extends HttpServlet {
                         request.setAttribute(entry.getKey(), entry.getValue());
                         System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
                     }
-               } 
+               }
                dispatcher.forward(request, response);
         } catch (Exception e) {
               System.out.println("Tsy itany ilay page");

@@ -9,6 +9,7 @@ import etu1839.framework.annotation.AnnotationUrl;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.text.*;
 import java.util.HashMap;
 import java.util.List;
 
@@ -99,5 +100,22 @@ public class Utilitaire {
          for(int i = 0; i < allPackage.size(); i++) {
              addMappingUrl(mappingUrls, allPackage.get(i));
          }
+    }
+
+    public  Object castToAppropriateClass(String valueInst, Class<?> classInst) {
+        System.out.println("ClassType: " + classInst.getSimpleName());
+        try {
+            if(classInst.getSimpleName() == "int" || classInst.getSimpleName() == "Integer") {
+                return Integer.parseInt(valueInst); // try to parse the valueInst as an integer
+            } else if(classInst.getSimpleName() == "double" || classInst.getSimpleName() == "Double") {
+                return Double.parseDouble(valueInst); // try to parse the valueInst as a double
+            } else if(classInst.getSimpleName() == "Date") { 
+                return new SimpleDateFormat("yyyy-MM-dd").parse(valueInst); // try to parse the valueInst as a date
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return valueInst; // return the value as a string
     }
 }
