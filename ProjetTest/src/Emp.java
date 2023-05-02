@@ -55,6 +55,17 @@ public class Emp {
         return view;
     }
 
+    @AnnotationUrl(url = "emp-findById")
+    public ModelView findById(int id) {
+        System.out.println("--------  Emp-FindById ---------");
+        System.out.println("*Id: " + id);
+
+        ModelView view = new ModelView("info.jsp");
+        view.addItem("emp", this.listEmp()[id]);
+        
+        return view;
+    }
+
     public int getIdEmp() {
         return this.idEmploye;
     }

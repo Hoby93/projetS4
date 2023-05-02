@@ -9,8 +9,7 @@ import etu1839.framework.Mapping;
 import etu1839.framework.ModelView;
 import etu1839.framework.Utilitaire;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Field;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Date;
@@ -82,6 +81,33 @@ public class FrontServlet extends HttpServlet {
       }
     }
 
+    public Class<?>[] getParameterType(Method[] methods, String methodeName) {
+        for (Method method : methods) {
+            if(method.getName() == methodeName) {
+                return method.getParameterTypes();
+            }
+        }
+
+        return null;
+    }
+
+    public Object[] getParameterValues(HttpServletRequest request, Parameter[] args) {
+        Object[] valueArgs = new Object[args.length];
+
+        for (int i=0; i<args.length; i++) {
+            System.out.println(">>> Attribut : " + args[i].getName());
+            valueArgs[i] = new Utilitaire().castToAppropriateClass(request.getParameter(args[i].getName()), args[i].getType());
+        }
+
+        return valueArgs;
+    }
+
+    /**
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
           try {
@@ -98,9 +124,14 @@ public class FrontServlet extends HttpServlet {
                     Object objectInstance = classInstance.newInstance();
                     fillAttribute(request, objectInstance);
                     
-                    Method function = objectInstance.getClass().getMethod(relative.getMethode());
+                    Class<?>[] functionParameters = getParameterType(classInstance.getDeclaredMethods(), relative.getMethode());
+                    Method function = objectInstance.getClass().getMethod(relative.getMethode(), functionParameters);
+                    Parameter[] args = function.getParameters();
+                    Object[] valueArgs = getParameterValues(request, args);
 
-                    ModelView view = (ModelView) function.invoke(objectInstance);
+                    System.out.println("*** Nb de parametre: " + args.length);
+
+                    ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
                     dispatcher = request.getRequestDispatcher("/web/" + view.getView());
 
                        System.out.println("countData : " + view.getData().size());
