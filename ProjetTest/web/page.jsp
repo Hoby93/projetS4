@@ -18,8 +18,8 @@
     </head>
     <body>
         <h1>Welcome this page</h1>
-        
-        <table border="1">
+
+        <table border=1>
             <tr>
                 <th> IdEmp </th>
                 <th> Nom </th>
@@ -32,6 +32,7 @@
                 <td> <%=list[i].getNom()%> </td>
                 <td> <%=list[i].getPrenom()%> </td>
                 <td> <%=list[i].getAge()%> </td>
+                <td> <a href="emp-findById?id=<%=list[i].getIdEmp() - 1%>">Detail</a> </td>
             </tr>
             <% } %>
         </table>

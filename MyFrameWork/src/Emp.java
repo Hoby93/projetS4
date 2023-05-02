@@ -33,12 +33,35 @@ public class Emp {
     }
     
     @AnnotationUrl(url = "emp-all")
-    public ModelView add() {
+    public ModelView findAll() {
         ModelView view = new ModelView("page.jsp");
         view.addItem("lst", this.listEmp());
         view.addItem("test", 12);
 
-        System.out.println("etu1839.framework.Employe.add()");
+        System.out.println("etu1839.framework.Employe.findAll()");
+        
+        return view;
+    }
+
+    @AnnotationUrl(url = "emp-add")
+    public ModelView add() {
+        ModelView view = new ModelView("add.jsp");
+
+        System.out.println("--------  Emp-Add ---------");
+        System.out.println("Nom: " + this.nom);
+        System.out.println("Prenom: " + this.prenom);
+        System.out.println("Age: " + this.age);
+        
+        return view;
+    }
+
+    @AnnotationUrl(url = "emp-findById")
+    public ModelView findById(int id) {
+        System.out.println("--------  Emp-FindById ---------");
+        System.out.println("*Id: " + id);
+
+        ModelView view = new ModelView("info.jsp");
+        view.addItem("emp", this.listEmp()[id]);
         
         return view;
     }
@@ -51,11 +74,23 @@ public class Emp {
         return this.nom;
     }
 
+    public void setNom(String snom) {
+        this.nom = snom;
+    }
+
     public String getPrenom() {
         return this.prenom;
     }
 
+    public void setPrenom(String sprenom) {
+        this.prenom = sprenom;
+    }
+
     public int getAge() {
         return this.age;
+    }
+
+    public void setAge(int sage) {
+        this.age = sage;
     }
 }
