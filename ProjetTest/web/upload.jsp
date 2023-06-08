@@ -17,17 +17,11 @@
         </style>
     </head>
     <body>
-        <h1>Welcome this page</h1>
+        <h1>Welcome this Upload-Page</h1>
         
-        <form action="emp-add" method="post" enctype="multipart/form-data">
+        <form action="emp-add" method="post" enctype="multipart/form-data"> 
             <input type="text" placeholder="Nom" name="nom" class="form-login"/> <br>
             <input type="text" placeholder="Prenom" name="prenom" class="form-login"/> <br>
-            <select name="age" class="form-login" style="width: 212px;">
-                <option value="">Age</option>
-                <option value="18">18</option>
-                <option value="19">19</option>
-                <option value="20">20</option>
-            </select> <br>
             <input type="file" name="photo" class="form-login"> <br>
 
             <input type="submit"  value="Confirmer" class="form-login" style="width: 212px;"/> <br>

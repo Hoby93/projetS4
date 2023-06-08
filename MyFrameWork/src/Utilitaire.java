@@ -46,17 +46,16 @@ public class Utilitaire {
         for (File file : files) {
             if(file.isDirectory()) {
                 packages.add(debut + concat + file.getName());
-                //System.out.println(debut + concat + file.getName());
+                System.out.println(debut + concat + file.getName());
                 packages = getAllPackages(packages, file.getPath(), debut + concat + file.getName());
             }
         }
+
         return packages;
     }
     
     public void addMappingUrl(HashMap<String, Mapping> mappingUrls, String packageName) {
-        String path = this.getClass().getClassLoader().getResource("").getPath().toString();
-        path = "C:\\Program Files\\Apache Software Foundation\\Tomcat 8.5\\webapps\\MyFrameWork\\src\\";
-        //System.out.println("Path : " + this.getClass().getClassLoader().getResource("").getPath().toString());
+        String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
         
         File pack = new File(path + packageName.replace('.', '\\'));
         File[] allClass = pack.listFiles();
@@ -93,13 +92,13 @@ public class Utilitaire {
      }
     
     public void fillMappingUrlValues(HashMap<String, Mapping> mappingUrls) {
-         String path =  this.getClass().getClassLoader().getResource("").getPath().toString();
-         path = "C:\\Program Files\\Apache Software Foundation\\Tomcat 8.5\\webapps\\MyFrameWork\\src";
-         List<String> allPackage = getAllPackages(null, path, null);
+        String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
+        System.out.println("Path: " + path);
+        List<String> allPackage = getAllPackages(null, path, null);
          
-         for(int i = 0; i < allPackage.size(); i++) {
-             addMappingUrl(mappingUrls, allPackage.get(i));
-         }
+        for(int i = 0; i < allPackage.size(); i++) {
+            addMappingUrl(mappingUrls, allPackage.get(i));
+        }
     }
 
     public  Object castToAppropriateClass(String valueInst, Class<?> classInst) {

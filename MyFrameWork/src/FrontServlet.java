@@ -6,9 +6,13 @@
 package etu1839.framework.servlet;
 
 import etu1839.framework.Mapping;
+import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
 import etu1839.framework.Utilitaire;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,6 +21,8 @@ import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.http.Part;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ITU
  */
+
+@MultipartConfig
 public class FrontServlet extends HttpServlet {
     HashMap<String,Mapping> mappingUrls;
     
@@ -75,10 +83,23 @@ public class FrontServlet extends HttpServlet {
                     System.out.println(field.getName() + ": " + value);
                     System.out.println("we will call --> " + setterName(field.getName()));
                 }
+                try {
+                    if( request.getPart(field.getName()) != null) {
+                        Part file = request.getPart(field.getName());
+                        
+                        Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
+                        Object fileUpload = new FileUpload("C:\\", file.getSubmittedFileName(), partToByte(file));
+                        setter.invoke(objectInst, fileUpload);
+
+                        System.out.println("we found file-upload --> " + setterName(field.getName()));
+                    }
+                } catch (Exception e) {
+                        // e.printStackTrace();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
-      }
+        }
     }
 
     public Class<?>[] getParameterType(Method[] methods, String methodeName) {
@@ -100,6 +121,25 @@ public class FrontServlet extends HttpServlet {
         }
 
         return valueArgs;
+    }
+
+    public byte[] partToByte(Part file) throws Exception {
+        InputStream is = file.getInputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+
+        while((bytesRead = is.read(buffer)) != -1) {
+            bos.write(buffer, 0, bytesRead);
+        }
+
+        byte[] ans = bos.toByteArray();
+
+        bos.close();
+        is.close();
+
+        return ans;
     }
 
     /**
