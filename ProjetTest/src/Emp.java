@@ -6,6 +6,7 @@
 package model;
 
 import etu1839.framework.annotation.AnnotationUrl;
+import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
 
 public class Emp {
@@ -13,6 +14,7 @@ public class Emp {
     String nom;
     String prenom;
     int age;
+    FileUpload photo;
 
     public Emp() {
     }
@@ -46,11 +48,16 @@ public class Emp {
     @AnnotationUrl(url = "emp-add")
     public ModelView add() {
         ModelView view = new ModelView("add.jsp");
+        try {
 
-        System.out.println("--------  Emp-Add ---------");
-        System.out.println("Nom: " + this.nom);
-        System.out.println("Prenom: " + this.prenom);
-        System.out.println("Age: " + this.age);
+            System.out.println("--------  Emp-Add ---------");
+            System.out.println("Nom: " + this.nom);
+            System.out.println("Prenom: " + this.prenom);
+            System.out.println("Age: " + this.age);
+            System.out.println("PhotoFileName: " + this.photo.getFileName());
+        } catch(Exception ex) {
+            // ex.printStackTrace();
+        }
         
         return view;
     }
@@ -92,5 +99,13 @@ public class Emp {
 
     public void setAge(int sage) {
         this.age = sage;
+    }
+
+    public FileUpload getPhoto() {
+        return this.photo;
+    }
+
+    public void setPhoto(FileUpload fu) {
+        this.photo = fu;
     }
 }

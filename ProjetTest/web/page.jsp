@@ -15,11 +15,30 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
+
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            .tab {
+                border: none;
+            }
+            .tab th {
+                width: 100px;
+                padding: 2px;
+                background-color: rgb(131, 182, 240);
+            }
+            .tab tr {
+                background-color: rgba(201, 201, 201, 0.753);
+                text-align: left;
+            }
+        </style>
     </head>
     <body>
         <h1>Welcome this page</h1>
 
-        <table border=1>
+        <a href="emp-add">Ajouter</a><br><br>
+        <table class="tab">
             <tr>
                 <th> IdEmp </th>
                 <th> Nom </th>

@@ -11,11 +11,26 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
+
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            .tab {
+                border: none;
+            }
+            .tab th {
+                width: 100px;
+            }
+            .tab tr {
+                text-align: left;
+            }
+        </style>
     </head>
     <body>
         <h1>Welcome this page</h1>
         
-        <table>
+        <table class="tab">
             <tr>
                 <th> IdEmp: </th>
                 <td><%=employe.getIdEmp()%></td>
@@ -33,5 +48,10 @@
                 <td><%=employe.getAge()%></td>
             </tr>
         </table>
+
+        <div>
+        <br>
+            <a href="emp-all"><< Retour</a>
+        </div>
     </body>
 </html>
