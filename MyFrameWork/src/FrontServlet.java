@@ -33,7 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 
 @MultipartConfig
 public class FrontServlet extends HttpServlet {
-    HashMap<String,Mapping> mappingUrls;
+    HashMap<String, Mapping> mappingUrls;
+    HashMap<String, Object> classInstances;
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -148,12 +149,27 @@ public class FrontServlet extends HttpServlet {
      * @throws ServletException
      * @throws IOException
      */
+
+    //verifier si on doit creer ou reprendre une instance existante
+    public Object apropriateClassInstance(Class<?> classInstance) throws Exception {
+        if(classInstances.containsKey(classInstance.getName())) {
+            if(classInstances.get(classInstance.getName()) == null) {
+                classInstances.replace(classInstance.getName(), classInstance.newInstance());
+                System.out.println("We init instance of  : " + classInstance.getName());
+            }
+
+            return classInstances.get(classInstance.getName());
+        }
+
+        return classInstance.newInstance();
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
+          RequestDispatcher dispatcher = request.getRequestDispatcher("/web/index.html");
           try {
                 String[] url = new Utilitaire().getDataFromURL(request.getRequestURI());
                 String slug = url[url.length - 1];
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/web/index.html");
                 if(this.mappingUrls.containsKey(slug)) {
 
                     System.out.println("url : " + slug);
@@ -161,7 +177,8 @@ public class FrontServlet extends HttpServlet {
                     Mapping relative = mappingUrls.get(slug);
 
                     Class<?> classInstance = Class.forName(relative.getClassName());
-                    Object objectInstance = classInstance.newInstance();
+
+                    Object objectInstance = apropriateClassInstance(classInstance);
                     fillAttribute(request, objectInstance);
                     
                     Class<?>[] functionParameters = getParameterType(classInstance.getDeclaredMethods(), relative.getMethode());
@@ -172,21 +189,23 @@ public class FrontServlet extends HttpServlet {
                     System.out.println("*** Nb de parametre: " + args.length);
 
                     ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
-                    dispatcher = request.getRequestDispatcher("/web/" + view.getView());
+                        
+                    dispatcher = request.getRequestDispatcher("/web/" + view.getView());       
 
-                       System.out.println("countData : " + view.getData().size());
-                       System.out.println("modelView : " + view.getView());
+                    System.out.println("countData : " + view.getData().size());
+                    System.out.println("modelView : " + view.getView());
 
                     for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
                         request.setAttribute(entry.getKey(), entry.getValue());
                         System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
                     }
-               }
-               dispatcher.forward(request, response);
-        } catch (Exception e) {
-              System.out.println("Tsy itany ilay page");
-              e.printStackTrace();
-        }
+                }
+            } catch (Exception e) {
+                System.out.println("Tsy itany ilay page");
+                e.printStackTrace();
+            }
+
+        dispatcher.forward(request, response);
            
 //        response.setContentType("text/html;charset=UTF-8");
     }
@@ -194,8 +213,10 @@ public class FrontServlet extends HttpServlet {
     @Override
     public  void init() {
         this.mappingUrls = new HashMap<String, Mapping>();
-        new Utilitaire().fillMappingUrlValues(this.mappingUrls);
-     }
+        this.classInstances = new HashMap<String, Object>();
+        new Utilitaire().fillMappingUrlValues(this.mappingUrls, this.classInstances);
+        //System.out.println("Size of HashMap: " + this.mappingUrls.size());
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
