@@ -8,7 +8,8 @@ package etu1839.framework;
 /**
  *
  * @author ITU
- */
+*/
+
 public class Mapping {
     String className;
     String methode;
@@ -33,6 +34,5 @@ public class Mapping {
     public void setMethode(String methode) {
         this.methode = methode;
     }
-    
     
 }

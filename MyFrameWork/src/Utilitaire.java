@@ -6,6 +6,9 @@
 package etu1839.framework;
 
 import etu1839.framework.annotation.AnnotationUrl;
+import etu1839.framework.annotation.AnnotationScop;
+import etu1839.framework.annotation.AnnotationSession;
+import etu1839.framework.annotation.Authentification;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -54,7 +57,7 @@ public class Utilitaire {
         return packages;
     }
     
-    public void addMappingUrl(HashMap<String, Mapping> mappingUrls, String packageName) {
+    public void addMappingUrl(HashMap<String, Mapping> mappingUrls, HashMap<String, Object> classInstances, String packageName) {
         String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
         
         File pack = new File(path + packageName.replace('.', '\\'));
@@ -74,10 +77,16 @@ public class Utilitaire {
                         //System.out.println("Name : " + MyClass.getName());
         
                         Method[] listMethode = MyClass.getDeclaredMethods();
-                        //System.out.println("\tMethodes Annotee [AnnotationUrl] :");
+
+                        //ajouter dans la list si la class est annotee AnnotationScop
+                        if(MyClass.isAnnotationPresent(AnnotationScop.class)) {
+                            System.out.println("\t> " + MyClass.getName() + " Annotee [AnnotationScop]");
+                            classInstances.put(MyClass.getName(), null);
+                        }
+
                         for(int x = 0; x < listMethode.length; x++) {
                             if(listMethode[x].getAnnotation(AnnotationUrl.class) != null) {
-                                System.out.println("\t> " + listMethode[x].getName() + " > " + listMethode[x].getAnnotation(AnnotationUrl.class).url());
+                                System.out.println("\t> " + listMethode[x].getName() + " --> " + listMethode[x].getAnnotation(AnnotationUrl.class).url());
                                 Mapping mapping = new Mapping(className, listMethode[x].getName());
                                 mappingUrls.put(listMethode[x].getAnnotation(AnnotationUrl.class).url(), mapping);
                             }
@@ -89,15 +98,15 @@ public class Utilitaire {
          } catch (Exception e) {
              e.printStackTrace();
          }
-     }
+    }
     
-    public void fillMappingUrlValues(HashMap<String, Mapping> mappingUrls) {
+    public void fillMappingUrlValues(HashMap<String, Mapping> mappingUrls, HashMap<String, Object> classInstances) {
         String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
         System.out.println("Path: " + path);
         List<String> allPackage = getAllPackages(null, path, null);
          
         for(int i = 0; i < allPackage.size(); i++) {
-            addMappingUrl(mappingUrls, allPackage.get(i));
+            addMappingUrl(mappingUrls, classInstances, allPackage.get(i));
         }
     }
 
