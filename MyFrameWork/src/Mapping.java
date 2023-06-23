@@ -8,15 +8,16 @@ package etu1839.framework;
 /**
  *
  * @author ITU
-*/
-
+ */
 public class Mapping {
     String className;
     String methode;
+    String authentification;
 
-    public Mapping(String className, String methode) {
+    public Mapping(String className, String methode, String auth) {
         this.className = className;
         this.methode = methode;
+        this.authentification = auth;
     }
 
     public String getClassName() {
@@ -33,6 +34,14 @@ public class Mapping {
 
     public void setMethode(String methode) {
         this.methode = methode;
+    }
+
+    public String getAutentification() {
+        return this.authentification;
+    }
+
+    public void setAutentification(String auth) {
+        this.authentification = auth;
     }
     
 }

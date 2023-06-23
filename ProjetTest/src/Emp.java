@@ -2,10 +2,12 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
- */
+*/
+
 package model;
 
 import etu1839.framework.annotation.AnnotationUrl;
+import etu1839.framework.annotation.Authentification;
 import etu1839.framework.annotation.AnnotationScop;
 import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
@@ -48,11 +50,11 @@ public class Emp {
         return view;
     }
 
+    @Authentification(required = "Client")
     @AnnotationUrl(url = "emp-add")
     public ModelView add() {
         ModelView view = new ModelView("add.jsp");
         try {
-
             System.out.println("--------  Emp-Add ---------");
             System.out.println("Nom: " + this.nom);
             System.out.println("Prenom: " + this.prenom);
@@ -72,6 +74,17 @@ public class Emp {
 
         ModelView view = new ModelView("info.jsp");
         view.addItem("emp", this.listEmp()[id]);
+        
+        return view;
+    }
+
+    @Authentification(required = "Admin")
+    @AnnotationUrl(url = "emp-delete")
+    public ModelView delete() {
+        ModelView view = new ModelView("page.jsp");
+        view.addItem("lst", this.listEmp());
+
+        System.out.println("etu1839.framework.Employe.findAll()");
         
         return view;
     }

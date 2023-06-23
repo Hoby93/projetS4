@@ -7,7 +7,6 @@ package etu1839.framework;
 
 import etu1839.framework.annotation.AnnotationUrl;
 import etu1839.framework.annotation.AnnotationScop;
-import etu1839.framework.annotation.AnnotationSession;
 import etu1839.framework.annotation.Authentification;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -56,6 +55,17 @@ public class Utilitaire {
 
         return packages;
     }
+
+    public String getAuthentification(Method method) {
+        String ans = "*";
+        if(method.isAnnotationPresent(Authentification.class)) {
+            ans = method.getAnnotation(Authentification.class).required();
+
+            System.out.println("\t> " + method.getName() + " --> " + ans);
+        }
+
+        return ans;
+    }
     
     public void addMappingUrl(HashMap<String, Mapping> mappingUrls, HashMap<String, Object> classInstances, String packageName) {
         String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
@@ -87,7 +97,7 @@ public class Utilitaire {
                         for(int x = 0; x < listMethode.length; x++) {
                             if(listMethode[x].getAnnotation(AnnotationUrl.class) != null) {
                                 System.out.println("\t> " + listMethode[x].getName() + " --> " + listMethode[x].getAnnotation(AnnotationUrl.class).url());
-                                Mapping mapping = new Mapping(className, listMethode[x].getName());
+                                Mapping mapping = new Mapping(className, listMethode[x].getName(), getAuthentification(listMethode[x]));
                                 mappingUrls.put(listMethode[x].getAnnotation(AnnotationUrl.class).url(), mapping);
                             }
                         }
