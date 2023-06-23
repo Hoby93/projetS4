@@ -70,21 +70,29 @@ public class FrontServlet extends HttpServlet {
         } 
     }
 
-    public void fillAttribute(HttpServletRequest request, Object objectInst) {
+    public void fillAttribute(HttpServletRequest request, Object objectInst, boolean need) {
         try {
             Field[] attributs = objectInst.getClass().getDeclaredFields();
             for(Field field : attributs) {
+                // Envoyer la session http si la methode est annotée
+                if(field.getName() == "session" && need) {
+                    System.out.println("ENVOYE SESSION");
+                    Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
+                    Object fileUpload = request.getSession().getAttribute("user");
+                    setter.invoke(objectInst, fileUpload);
+                }
+
                 String value = request.getParameter(field.getName());
                 if(value != null) {
                     Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
                     Object attr = new Utilitaire().castToAppropriateClass(value, field.getType());
-                    //setter.invoke(objectInst, value);
                     callSetter(setter, objectInst, attr);
 
                     System.out.println(field.getName() + ": " + value);
                     System.out.println("we will call --> " + setterName(field.getName()));
                 }
                 try {
+                    // Instancier la fileUpload si il y en a 
                     if( request.getPart(field.getName()) != null) {
                         Part file = request.getPart(field.getName());
                         
@@ -179,7 +187,7 @@ public class FrontServlet extends HttpServlet {
                     Class<?> classInstance = Class.forName(relative.getClassName());
 
                     Object objectInstance = apropriateClassInstance(classInstance);
-                    fillAttribute(request, objectInstance);
+                    fillAttribute(request, objectInstance, relative.isNeedSession());
                     
                     Class<?>[] functionParameters = getParameterType(classInstance.getDeclaredMethods(), relative.getMethode());
                     Method function = objectInstance.getClass().getMethod(relative.getMethode(), functionParameters);
@@ -190,6 +198,11 @@ public class FrontServlet extends HttpServlet {
 
                     //setSession(request, "user");
                     HashMap<String, Boolean> userSession = (HashMap<String, Boolean>) request.getSession().getAttribute("user");
+
+                    if(relative.isNeedSession()) {
+                        System.out.println("we set session for this model");
+                        //view.setSession(userSession);
+                    }
 
                     //System.out.println("Require: " + relative.getAutentification() + " | Session value: " + userSession.get(relative.getAutentification()));
 

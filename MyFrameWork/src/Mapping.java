@@ -13,11 +13,13 @@ public class Mapping {
     String className;
     String methode;
     String authentification;
+    boolean needSession;
 
-    public Mapping(String className, String methode, String auth) {
+    public Mapping(String className, String methode, String auth, boolean isSession) {
         this.className = className;
         this.methode = methode;
         this.authentification = auth;
+        this.needSession = isSession;
     }
 
     public String getClassName() {
@@ -42,6 +44,14 @@ public class Mapping {
 
     public void setAutentification(String auth) {
         this.authentification = auth;
+    }
+
+    public boolean  isNeedSession() {
+        return this.needSession;
+    }
+
+    public void setNeedSession(boolean val) {
+        this.needSession = val;
     }
     
 }

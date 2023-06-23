@@ -9,8 +9,10 @@ package model;
 import etu1839.framework.annotation.AnnotationUrl;
 import etu1839.framework.annotation.Authentification;
 import etu1839.framework.annotation.AnnotationScop;
+import etu1839.framework.annotation.AnnotationSession;
 import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
+import java.util.HashMap;
 
 
 @AnnotationScop(scop = "singleton")
@@ -20,6 +22,9 @@ public class Emp {
     String prenom;
     int age;
     FileUpload photo;
+
+    // Ce nom est fixé par convention pour tout les classes
+    HashMap<String, Boolean> session = new HashMap<String, Boolean>();
 
     public Emp() {
     }
@@ -39,6 +44,7 @@ public class Emp {
         return ans;
     }
     
+    @AnnotationSession
     @AnnotationUrl(url = "emp-all")
     public ModelView findAll() {
         ModelView view = new ModelView("page.jsp");
@@ -123,5 +129,9 @@ public class Emp {
 
     public void setPhoto(FileUpload fu) {
         this.photo = fu;
+    }
+
+    public void setSession(HashMap<String, Boolean> s) {
+        this.session = s;
     }
 }
