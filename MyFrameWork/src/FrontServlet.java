@@ -188,26 +188,46 @@ public class FrontServlet extends HttpServlet {
 
                     System.out.println("*** Nb de parametre: " + args.length);
 
-                    ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
+                    //setSession(request, "user");
+                    HashMap<String, Boolean> userSession = (HashMap<String, Boolean>) request.getSession().getAttribute("user");
+
+                    //System.out.println("Require: " + relative.getAutentification() + " | Session value: " + userSession.get(relative.getAutentification()));
+
+                    if(relative.getAutentification() == "*" || userSession.get(relative.getAutentification())) {
+                        ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
                         
-                    dispatcher = request.getRequestDispatcher("/web/" + view.getView());       
+                        dispatcher = request.getRequestDispatcher("/web/" + view.getView());
+                        
+                            if(!view.getSession().isEmpty()) {
+                                setSession(request, view.getSession());
+                                System.out.println("** SET-HTTP-SESSION **");
+                            }
 
-                    System.out.println("countData : " + view.getData().size());
-                    System.out.println("modelView : " + view.getView());
+                            System.out.println("countData : " + view.getData().size());
+                            System.out.println("modelView : " + view.getView());
 
-                    for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
-                        request.setAttribute(entry.getKey(), entry.getValue());
-                        System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
+                            for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
+                                request.setAttribute(entry.getKey(), entry.getValue());
+                                System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
+                            }
+                        
+                    } else {
+                        dispatcher = request.getRequestDispatcher("/web/error.jsp");
+                        request.setAttribute("error", "Privilege " + relative.getAutentification() + " requis pour executer cette action");
                     }
-                }
-            } catch (Exception e) {
-                System.out.println("Tsy itany ilay page");
-                e.printStackTrace();
-            }
+               }
+        } catch (Exception e) {
+              System.out.println("Tsy itany ilay page");
+              e.printStackTrace();
+        }
 
         dispatcher.forward(request, response);
            
 //        response.setContentType("text/html;charset=UTF-8");
+    }
+
+    public void setSession(HttpServletRequest request, HashMap<String, Boolean> userSession) {
+        request.getSession().setAttribute("user", userSession);
     }
     
     @Override
