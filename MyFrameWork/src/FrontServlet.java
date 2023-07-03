@@ -13,10 +13,13 @@ import etu1839.framework.Utilitaire;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Date;
+
+import com.google.gson.Gson;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -50,6 +53,7 @@ public class FrontServlet extends HttpServlet {
         return "set" + attr.substring(0, 1).toUpperCase() + attr.substring(1);
     }
 
+    // La fonction qui caste
     public void callSetter(Method theSetter, Object objectInst, Object objectVal) {
         try {
             if (objectVal instanceof Integer) {
@@ -70,6 +74,7 @@ public class FrontServlet extends HttpServlet {
         } 
     }
 
+    // Instancier les attributs d'un objet
     public void fillAttribute(HttpServletRequest request, Object objectInst, boolean need) {
         try {
             Field[] attributs = objectInst.getClass().getDeclaredFields();
@@ -111,6 +116,7 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
+    // Recuperer les types des parametres d'une fonction
     public Class<?>[] getParameterType(Method[] methods, String methodeName) {
         for (Method method : methods) {
             if(method.getName() == methodeName) {
@@ -121,6 +127,7 @@ public class FrontServlet extends HttpServlet {
         return null;
     }
 
+    // Recuperer les valeurs pour les parametres d'une fonction
     public Object[] getParameterValues(HttpServletRequest request, Parameter[] args) {
         Object[] valueArgs = new Object[args.length];
 
@@ -132,6 +139,7 @@ public class FrontServlet extends HttpServlet {
         return valueArgs;
     }
 
+    // Convertir un Objet Part a un tableau de bite
     public byte[] partToByte(Part file) throws Exception {
         InputStream is = file.getInputStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -172,9 +180,25 @@ public class FrontServlet extends HttpServlet {
         return classInstance.newInstance();
     }
 
+    // Verifier si on doit redirectioner vers un vue ou envoyer un Json
+    public void sendResponse(HttpServletRequest request, HttpServletResponse response, ModelView mv) {
+        try {
+            if(mv.getToJSON()) {
+                Gson gson = new Gson();
+                String json = gson.toJson(mv.getData());
+                PrintWriter out = response.getWriter();
+                out.print("TO JSON >>> " + json);
+            } else {
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/web/" + mv.getView());
+                dispatcher.forward(request, response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+      }
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
-          RequestDispatcher dispatcher = request.getRequestDispatcher("/web/index.html");
           try {
                 String[] url = new Utilitaire().getDataFromURL(request.getRequestURI());
                 String slug = url[url.length - 1];
@@ -208,9 +232,7 @@ public class FrontServlet extends HttpServlet {
 
                     if(relative.getAutentification() == "*" || userSession.get(relative.getAutentification())) {
                         ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
-                        
-                        dispatcher = request.getRequestDispatcher("/web/" + view.getView());
-                        
+
                             if(!view.getSession().isEmpty()) {
                                 setSession(request, view.getSession());
                                 System.out.println("** SET-HTTP-SESSION **");
@@ -223,20 +245,20 @@ public class FrontServlet extends HttpServlet {
                                 request.setAttribute(entry.getKey(), entry.getValue());
                                 System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
                             }
-                        
+
+                        this.sendResponse(request, response, view);
                     } else {
-                        dispatcher = request.getRequestDispatcher("/web/error.jsp");
+                        RequestDispatcher dispatcher = request.getRequestDispatcher("/web/error.jsp");
                         request.setAttribute("error", "Privilege " + relative.getAutentification() + " requis pour executer cette action");
+                        dispatcher.forward(request, response);
                     }
+               } else {
+                    RequestDispatcher dispatcher = request.getRequestDispatcher("/web/index.html");
+                    dispatcher.forward(request, response);
                }
         } catch (Exception e) {
-              System.out.println("Tsy itany ilay page");
               e.printStackTrace();
         }
-
-        dispatcher.forward(request, response);
-           
-//        response.setContentType("text/html;charset=UTF-8");
     }
 
     public void setSession(HttpServletRequest request, HashMap<String, Boolean> userSession) {
@@ -248,7 +270,6 @@ public class FrontServlet extends HttpServlet {
         this.mappingUrls = new HashMap<String, Mapping>();
         this.classInstances = new HashMap<String, Object>();
         new Utilitaire().fillMappingUrlValues(this.mappingUrls, this.classInstances);
-        //System.out.println("Size of HashMap: " + this.mappingUrls.size());
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

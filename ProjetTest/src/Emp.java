@@ -48,6 +48,7 @@ public class Emp {
     @AnnotationUrl(url = "emp-all")
     public ModelView findAll() {
         ModelView view = new ModelView("page.jsp");
+        view.setToJSON(true);
         view.addItem("lst", this.listEmp());
         view.addItem("test", 12);
 

@@ -14,11 +14,13 @@ import java.util.HashMap;
  */
 public class ModelView {
     String view;
+    boolean toJSON;
+
     HashMap<String, Object> data = new HashMap<String,Object>();
     HashMap<String, Boolean> session = new HashMap<String, Boolean>();
 
     public ModelView() {
-
+        toJSON = false;
     }
 
     public ModelView(String view) {
@@ -35,6 +37,14 @@ public class ModelView {
 
     public void setView(String view) {
         this.view = view;
+    }
+
+    public boolean getToJSON() {
+        return this.toJSON;
+    }
+
+    public void setToJSON(boolean toJSON) {
+        this.toJSON = toJSON;
     }
 
     public void addItem(String key, Object value) {
