@@ -63,8 +63,6 @@ public class Utilitaire {
         String ans = "*";
         if(method.isAnnotationPresent(Authentification.class)) {
             ans = method.getAnnotation(Authentification.class).required();
-
-            System.out.println("\t> " + method.getName() + " --> " + ans);
         }
 
         return ans;
@@ -75,8 +73,6 @@ public class Utilitaire {
         boolean ans = false;
         if(method.isAnnotationPresent(AnnotationSession.class)) {
             ans = true;
-
-            System.out.println("\t> " + method.getName() + " need SESSION ");
         }
 
         return ans;
@@ -87,8 +83,6 @@ public class Utilitaire {
         boolean ans = false;
         if(method.isAnnotationPresent(AnnotationJson.class)) {
             ans = true;
-
-            System.out.println("\t> " + method.getName() + " Return JSON ");
         }
 
         return ans;

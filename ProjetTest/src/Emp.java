@@ -14,8 +14,6 @@ import etu1839.framework.annotation.AnnotationJson;
 import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
 import java.util.HashMap;
-import java.util.ArrayList;
-
 
 @AnnotationScop(scop = "singleton")
 public class Emp {
@@ -49,30 +47,24 @@ public class Emp {
     @AnnotationSession
     @AnnotationUrl(url = "emp-all")
     public ModelView findAll() {
-        ArrayList<String> session = new ArrayList<String>();
-        session.add("profil");
-        session.add("list");
-
         ModelView view = new ModelView("page.jsp");
-        view.setSessionRemove(session);
-        //view.invalidateSession();
         view.addItem("lst", this.listEmp());
         view.addItem("test", 12);
 
-        System.out.println("etu1839.framework.Employe.findAll()");
-        
+        if(session.containsKey("idUser")) {
+            System.out.println("**YES ITS'CONTAINS" + session.get("idUser"));
+        }        
         return view;
     }
 
     @AnnotationJson
     @AnnotationUrl(url = "emp-allToJson")
     public Emp[] findAllToJson() {
-        System.out.println("etu1839.framework.Employe.findAllToJson()");
+        System.out.println("model.Employe.findAllToJson()");
         
         return this.listEmp();
     }
 
-    @Authentification(required = "Client")
     @AnnotationUrl(url = "emp-add")
     public ModelView add() {
         ModelView view = new ModelView("add.jsp");
@@ -95,6 +87,7 @@ public class Emp {
         System.out.println("*Id: " + id);
 
         ModelView view = new ModelView("info.jsp");
+        view.putToSession("idUser", id);
         view.addItem("emp", this.listEmp()[id]);
         
         return view;
@@ -106,7 +99,7 @@ public class Emp {
         ModelView view = new ModelView("page.jsp");
         view.addItem("lst", this.listEmp());
 
-        System.out.println("etu1839.framework.Employe.findAll()");
+        System.out.println("model.Employe.findAll()");
         
         return view;
     }

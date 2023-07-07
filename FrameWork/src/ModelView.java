@@ -17,7 +17,7 @@ public class ModelView {
     String view;
     boolean toJSON = false;
     boolean invalidateSession = false;
-    ArrayList<String> sessionRemove;
+    ArrayList<String> sessionRemove = new ArrayList<String>();
 
     HashMap<String, Object> data = new HashMap<String,Object>();
     HashMap<String, Object> session = new HashMap<String, Object>();

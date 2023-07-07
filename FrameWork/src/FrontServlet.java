@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.*;
+import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,10 +84,9 @@ public class FrontServlet extends HttpServlet {
             for(Field field : attributs) {
                 // Envoyer la session http si la methode est annotée
                 if(field.getName() == "session" && need) {
-                    System.out.println("ENVOYE SESSION");
                     Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
-                    Object fileUpload = request.getSession().getAttribute("user");
-                    setter.invoke(objectInst, fileUpload);
+                    Object session = getSessionAttribute(request);
+                    setter.invoke(objectInst, session);
                 }
 
                 String value = request.getParameter(field.getName());
@@ -94,9 +94,6 @@ public class FrontServlet extends HttpServlet {
                     Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
                     Object attr = new Utilitaire().castToAppropriateClass(value, field.getType());
                     callSetter(setter, objectInst, attr);
-
-                    System.out.println(field.getName() + ": " + value);
-                    System.out.println("we will call --> " + setterName(field.getName()));
                 }
                 try {
                     // Instancier la fileUpload si il y en a 
@@ -106,8 +103,6 @@ public class FrontServlet extends HttpServlet {
                         Method setter = objectInst.getClass().getMethod(setterName(field.getName()), field.getType());
                         Object fileUpload = new FileUpload("C:\\", file.getSubmittedFileName(), partToByte(file));
                         setter.invoke(objectInst, fileUpload);
-
-                        System.out.println("we found file-upload --> " + setterName(field.getName()));
                     }
                 } catch (Exception e) {
                         // e.printStackTrace();
@@ -134,7 +129,6 @@ public class FrontServlet extends HttpServlet {
         Object[] valueArgs = new Object[args.length];
 
         for (int i=0; i<args.length; i++) {
-            System.out.println(">>> Attribut : " + args[i].getName());
             valueArgs[i] = new Utilitaire().castToAppropriateClass(request.getParameter(args[i].getName()), args[i].getType());
         }
 
@@ -173,7 +167,6 @@ public class FrontServlet extends HttpServlet {
         if(classInstances.containsKey(classInstance.getName())) {
             if(classInstances.get(classInstance.getName()) == null) {
                 classInstances.replace(classInstance.getName(), classInstance.newInstance());
-                System.out.println("We init instance of  : " + classInstance.getName());
             }
 
             return classInstances.get(classInstance.getName());
@@ -199,6 +192,20 @@ public class FrontServlet extends HttpServlet {
       }
     }
 
+    //  Recuperer les valeurs dans httpsessions
+    public HashMap<String, Object> getSessionAttribute(HttpServletRequest request) {
+        HashMap<String, Object> res = new HashMap<String, Object>();
+        // Parcourir les sessions existantes et ajouter dans un hashmap
+        Enumeration<String> attributeNames = request.getSession().getAttributeNames();
+        while (attributeNames.hasMoreElements()) {
+            String key = attributeNames.nextElement();
+            Object value = request.getSession().getAttribute(key);
+            res.put(key, value);
+        }
+        return res;
+    }
+
+    // Verifier si l'utilisateur actuel est autorisée a acceder a une methode
     public boolean checkAuthentifiction(String[] profils, String required) {
         for(String profil : profils) {
             if(profil.equalsIgnoreCase(required)) {
@@ -213,9 +220,8 @@ public class FrontServlet extends HttpServlet {
           try {
                 String[] url = new Utilitaire().getDataFromURL(request.getRequestURI());
                 String slug = url[url.length - 1];
+                // Si l'url tapée par le client existe
                 if(this.mappingUrls.containsKey(slug)) {
-
-                    System.out.println("url : " + slug);
 
                     Mapping relative = mappingUrls.get(slug);
 
@@ -229,36 +235,23 @@ public class FrontServlet extends HttpServlet {
                     Parameter[] args = function.getParameters();
                     Object[] valueArgs = getParameterValues(request, args);
 
-                    System.out.println("*** Nb de parametre: " + args.length);
-
-                    if(relative.isNeedSession()) {
-                        System.out.println("we set session for this model");
-                        //view.addSession(session);
-                    }
-
-                    //System.out.println("Require: " + relative.getAutentification() + " | Session value: " + session.get(relative.getAutentification()));
-
+                    // Si la methode est accessible ou l'utilisateur est autorisée
                     if(relative.getAutentification() == "*" || checkAuthentifiction((String[]) request.getSession().getAttribute("profil"), relative.getAutentification())) {
                         if(!relative.returnJson()) {
                             ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
-
-                                
-                                if(!view.getSession().isEmpty()) {
-                                    addSession(request, view.getSession());
-                                    System.out.println("** SET-HTTP-SESSION **");
-                                }
-
-                                System.out.println("countData : " + view.getData().size());
-                                System.out.println("modelView : " + view.getView());
-
-                                for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
-                                    request.setAttribute(entry.getKey(), entry.getValue());
-                                    System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
-                                }
+                            // Supprimer les sessions spécifiées
+                            setSession(request, view.getSessionRemove(), view.isInvalidateSession());
+                            if(!view.getSession().isEmpty()) {
+                                // Ajouter ou modifier des sessions
+                                addSession(request, view.getSession());
+                            }
+                            // Renvoyer dans request.attribute les données envoyée par le modelview si il y en a
+                            for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
+                                request.setAttribute(entry.getKey(), entry.getValue());
+                            }
 
                             this.sendResponse(request, response, view);
                         } else {
-                            System.out.println("** RETURN JSON");
                             Gson gson = new Gson();
                             String json = gson.toJson(function.invoke(objectInstance, valueArgs));
                             PrintWriter out = response.getWriter();
@@ -271,6 +264,10 @@ public class FrontServlet extends HttpServlet {
                     }
                } else {
                     RequestDispatcher dispatcher = request.getRequestDispatcher("/web/index.html");
+                    if(url.length != 1) {
+                        dispatcher = request.getRequestDispatcher("/web/error.jsp");
+                        request.setAttribute("error", "Erreur: url inconnue");
+                    }
                     dispatcher.forward(request, response);
                }
         } catch (Exception e) {
@@ -278,15 +275,16 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
+    // Fonction qui ajout ou modifie les sessions
     public void addSession(HttpServletRequest request, HashMap<String, Object> session) {
         Set<String> keys = session.keySet();
         
         for (String key : keys) {
             request.getSession().setAttribute(key, session.get(key));
-            System.out.println(key);
         }
     }
 
+    // Fonction qui supprime ou invalide les valeurs sessions spécifiées
     public void setSession(HttpServletRequest request, ArrayList<String> listSession, boolean invalidate) {
         if(invalidate) {
             request.getSession().invalidate();
@@ -340,7 +338,7 @@ public class FrontServlet extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "";
     }// </editor-fold>
 
 }
