@@ -10,9 +10,11 @@ import etu1839.framework.annotation.AnnotationUrl;
 import etu1839.framework.annotation.Authentification;
 import etu1839.framework.annotation.AnnotationScop;
 import etu1839.framework.annotation.AnnotationSession;
+import etu1839.framework.annotation.AnnotationJson;
 import etu1839.framework.FileUpload;
 import etu1839.framework.ModelView;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 
 @AnnotationScop(scop = "singleton")
@@ -24,7 +26,7 @@ public class Emp {
     FileUpload photo;
 
     // Ce nom est fixé par convention pour tout les classes
-    HashMap<String, Boolean> session = new HashMap<String, Boolean>();
+    HashMap<String, Object> session = new HashMap<String, Object>();
 
     public Emp() {
     }
@@ -47,14 +49,27 @@ public class Emp {
     @AnnotationSession
     @AnnotationUrl(url = "emp-all")
     public ModelView findAll() {
+        ArrayList<String> session = new ArrayList<String>();
+        session.add("profil");
+        session.add("list");
+
         ModelView view = new ModelView("page.jsp");
-        view.setToJSON(true);
+        view.setSessionRemove(session);
+        //view.invalidateSession();
         view.addItem("lst", this.listEmp());
         view.addItem("test", 12);
 
         System.out.println("etu1839.framework.Employe.findAll()");
         
         return view;
+    }
+
+    @AnnotationJson
+    @AnnotationUrl(url = "emp-allToJson")
+    public Emp[] findAllToJson() {
+        System.out.println("etu1839.framework.Employe.findAllToJson()");
+        
+        return this.listEmp();
     }
 
     @Authentification(required = "Client")
@@ -132,7 +147,7 @@ public class Emp {
         this.photo = fu;
     }
 
-    public void setSession(HashMap<String, Boolean> s) {
+    public void setSession(HashMap<String, Object> s) {
         this.session = s;
     }
 }

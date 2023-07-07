@@ -8,6 +8,7 @@ package etu1839.framework;
 import etu1839.framework.annotation.AnnotationUrl;
 import etu1839.framework.annotation.AnnotationScop;
 import etu1839.framework.annotation.AnnotationSession;
+import etu1839.framework.annotation.AnnotationJson;
 import etu1839.framework.annotation.Authentification;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -25,16 +26,17 @@ public class Utilitaire {
     public Utilitaire() {
     }
     
+    // Fonction qui split et renvoye les données d'un url
     public static String[] getDataFromURL(String url) {
         String[] urlData = url.split("/");
         String[] data = new String[urlData.length - 1];
         for (int i = 0; i < data.length; i++) {
-            System.out.println("URL " + urlData[i + 1]);
             data[i] = urlData[i + 1];
         }
         return data;
     }
     
+    // Fonction qui retourne les packages/sous-package/...
     public List<String> getAllPackages(List<String> packages, String path, String debut) {
         String concat = ".";
         if(packages == null)
@@ -49,7 +51,6 @@ public class Utilitaire {
         for (File file : files) {
             if(file.isDirectory()) {
                 packages.add(debut + concat + file.getName());
-                System.out.println(debut + concat + file.getName());
                 packages = getAllPackages(packages, file.getPath(), debut + concat + file.getName());
             }
         }
@@ -57,6 +58,7 @@ public class Utilitaire {
         return packages;
     }
 
+    // Fonction qui set l'authentification d'une mapping.methode
     public String getAuthentification(Method method) {
         String ans = "*";
         if(method.isAnnotationPresent(Authentification.class)) {
@@ -68,6 +70,7 @@ public class Utilitaire {
         return ans;
     }
 
+    // Fonction qui set le besoin de recuperer une session
     public boolean isNeedSession(Method method) {
         boolean ans = false;
         if(method.isAnnotationPresent(AnnotationSession.class)) {
@@ -78,7 +81,21 @@ public class Utilitaire {
 
         return ans;
     }
+
+    // Fonction qui verifie si une mapping.methode doit retourner JSON
+    public boolean isReturnJson(Method method) {
+        boolean ans = false;
+        if(method.isAnnotationPresent(AnnotationJson.class)) {
+            ans = true;
+
+            System.out.println("\t> " + method.getName() + " Return JSON ");
+        }
+
+        return ans;
+    }
     
+
+    // Fonction initialise et remplie une HashMap mappingUrl pour une package donnée
     public void addMappingUrl(HashMap<String, Mapping> mappingUrls, HashMap<String, Object> classInstances, String packageName) {
         String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
         
@@ -96,25 +113,23 @@ public class Utilitaire {
                     try {
                         String className = pckName + "." + allClass[i].getName().split(".class")[0];
                         Class MyClass = Class.forName(className);
-                        //System.out.println("Name : " + MyClass.getName());
         
                         Method[] listMethode = MyClass.getDeclaredMethods();
 
-                        //ajouter dans la list si la class est annotee AnnotationScop
+                        //ajouter dans la list si la class doit etre singleton
                         if(MyClass.isAnnotationPresent(AnnotationScop.class)) {
-                            System.out.println("\t> " + MyClass.getName() + " Annotee [AnnotationScop]");
                             classInstances.put(MyClass.getName(), null);
                         }
 
                         for(int x = 0; x < listMethode.length; x++) {
+                            //ajouter dans la list si la methode est annotee AnnotationURL
                             if(listMethode[x].getAnnotation(AnnotationUrl.class) != null) {
-                                System.out.println("\t> " + listMethode[x].getName() + " --> " + listMethode[x].getAnnotation(AnnotationUrl.class).url());
-                                Mapping mapping = new Mapping(className, listMethode[x].getName(), getAuthentification(listMethode[x]), isNeedSession(listMethode[x]));
+                                Mapping mapping = new Mapping(className, listMethode[x].getName(), getAuthentification(listMethode[x]), isNeedSession(listMethode[x]), isReturnJson(listMethode[x]));
                                 mappingUrls.put(listMethode[x].getAnnotation(AnnotationUrl.class).url(), mapping);
                             }
                         }
                     } catch(Exception e) {
-//                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                 }
          } catch (Exception e) {
@@ -122,9 +137,9 @@ public class Utilitaire {
          }
     }
     
+    // Fonction initialise et remplie une HashMap mappingUrl pour tout les packages
     public void fillMappingUrlValues(HashMap<String, Mapping> mappingUrls, HashMap<String, Object> classInstances) {
         String path =  this.getClass().getClassLoader().getResource("").getPath().toString().replace("%20", " ");
-        System.out.println("Path: " + path);
         List<String> allPackage = getAllPackages(null, path, null);
          
         for(int i = 0; i < allPackage.size(); i++) {
@@ -132,8 +147,8 @@ public class Utilitaire {
         }
     }
 
+    // Fonction qui effectue les castes
     public  Object castToAppropriateClass(String valueInst, Class<?> classInst) {
-        System.out.println("ClassType: " + classInst.getSimpleName());
         try {
             if(classInst.getSimpleName() == "int" || classInst.getSimpleName() == "Integer") {
                 return Integer.parseInt(valueInst); // try to parse the valueInst as an integer

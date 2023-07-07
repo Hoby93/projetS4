@@ -46,10 +46,8 @@ public class Login {
     }
 
     public void setAuthentification(ModelView view) {
-        view.putToSession("isConnected", true);
-        view.putToSession("Admin", false);
-        view.putToSession("Client", true);
-        view.putToSession("*", true);
+        String[] profil = {"Manager", "Admin"};
+        view.putToSession("profil", profil);
     }
 
     public String getNom() {
