@@ -15,9 +15,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Date;
+import java.util.Set;
 
 import com.google.gson.Gson;
 
@@ -197,6 +199,15 @@ public class FrontServlet extends HttpServlet {
       }
     }
 
+    public boolean checkAuthentifiction(String[] profils, String required) {
+        for(String profil : profils) {
+            if(profil.equalsIgnoreCase(required)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
            throws ServletException, IOException {
           try {
@@ -220,33 +231,39 @@ public class FrontServlet extends HttpServlet {
 
                     System.out.println("*** Nb de parametre: " + args.length);
 
-                    //setSession(request, "user");
-                    HashMap<String, Boolean> userSession = (HashMap<String, Boolean>) request.getSession().getAttribute("user");
-
                     if(relative.isNeedSession()) {
                         System.out.println("we set session for this model");
-                        //view.setSession(userSession);
+                        //view.addSession(session);
                     }
 
-                    //System.out.println("Require: " + relative.getAutentification() + " | Session value: " + userSession.get(relative.getAutentification()));
+                    //System.out.println("Require: " + relative.getAutentification() + " | Session value: " + session.get(relative.getAutentification()));
 
-                    if(relative.getAutentification() == "*" || userSession.get(relative.getAutentification())) {
-                        ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
+                    if(relative.getAutentification() == "*" || checkAuthentifiction((String[]) request.getSession().getAttribute("profil"), relative.getAutentification())) {
+                        if(!relative.returnJson()) {
+                            ModelView view = (ModelView) function.invoke(objectInstance, valueArgs);
 
-                            if(!view.getSession().isEmpty()) {
-                                setSession(request, view.getSession());
-                                System.out.println("** SET-HTTP-SESSION **");
-                            }
+                                
+                                if(!view.getSession().isEmpty()) {
+                                    addSession(request, view.getSession());
+                                    System.out.println("** SET-HTTP-SESSION **");
+                                }
 
-                            System.out.println("countData : " + view.getData().size());
-                            System.out.println("modelView : " + view.getView());
+                                System.out.println("countData : " + view.getData().size());
+                                System.out.println("modelView : " + view.getView());
 
-                            for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
-                                request.setAttribute(entry.getKey(), entry.getValue());
-                                System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
-                            }
+                                for(HashMap.Entry<String, Object> entry : view.getData().entrySet()) {
+                                    request.setAttribute(entry.getKey(), entry.getValue());
+                                    System.out.println("key : " + entry.getKey() + "\t value: " + entry.getValue());
+                                }
 
-                        this.sendResponse(request, response, view);
+                            this.sendResponse(request, response, view);
+                        } else {
+                            System.out.println("** RETURN JSON");
+                            Gson gson = new Gson();
+                            String json = gson.toJson(function.invoke(objectInstance, valueArgs));
+                            PrintWriter out = response.getWriter();
+                            out.print("TO JSON >>> " + json);
+                        }
                     } else {
                         RequestDispatcher dispatcher = request.getRequestDispatcher("/web/error.jsp");
                         request.setAttribute("error", "Privilege " + relative.getAutentification() + " requis pour executer cette action");
@@ -261,8 +278,23 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
-    public void setSession(HttpServletRequest request, HashMap<String, Boolean> userSession) {
-        request.getSession().setAttribute("user", userSession);
+    public void addSession(HttpServletRequest request, HashMap<String, Object> session) {
+        Set<String> keys = session.keySet();
+        
+        for (String key : keys) {
+            request.getSession().setAttribute(key, session.get(key));
+            System.out.println(key);
+        }
+    }
+
+    public void setSession(HttpServletRequest request, ArrayList<String> listSession, boolean invalidate) {
+        if(invalidate) {
+            request.getSession().invalidate();
+        } else {
+            for(String session : listSession) {
+                request.getSession().removeAttribute(session);
+            }
+        }
     }
     
     @Override

@@ -14,12 +14,14 @@ public class Mapping {
     String methode;
     String authentification;
     boolean needSession;
+    boolean returnJson;
 
-    public Mapping(String className, String methode, String auth, boolean isSession) {
+    public Mapping(String className, String methode, String auth, boolean isSession, boolean returnJson) {
         this.className = className;
         this.methode = methode;
         this.authentification = auth;
         this.needSession = isSession;
+        this.returnJson = returnJson;
     }
 
     public String getClassName() {
@@ -52,6 +54,14 @@ public class Mapping {
 
     public void setNeedSession(boolean val) {
         this.needSession = val;
+    }
+
+    public boolean  returnJson() {
+        return this.returnJson;
+    }
+
+    public void setReturnJson(boolean val) {
+        this.returnJson = val;
     }
     
 }

@@ -7,6 +7,7 @@
 package etu1839.framework;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  *
@@ -14,13 +15,14 @@ import java.util.HashMap;
  */
 public class ModelView {
     String view;
-    boolean toJSON;
+    boolean toJSON = false;
+    boolean invalidateSession = false;
+    ArrayList<String> sessionRemove;
 
     HashMap<String, Object> data = new HashMap<String,Object>();
-    HashMap<String, Boolean> session = new HashMap<String, Boolean>();
+    HashMap<String, Object> session = new HashMap<String, Object>();
 
     public ModelView() {
-        toJSON = false;
     }
 
     public ModelView(String view) {
@@ -51,15 +53,31 @@ public class ModelView {
         data.put(key, value);
     }
 
-    public HashMap<String, Boolean> getSession() {
+    public HashMap<String, Object> getSession() {
         return this.session;
     }
 
-    public void setSession(HashMap<String, Boolean> s) {
+    public void setSession(HashMap<String, Object> s) {
         this.session = s;
     }
 
-    public void putToSession(String key, Boolean value) {
+    public void putToSession(String key, Object value) {
         this.session.put(key, value);
+    }
+
+    public boolean isInvalidateSession() {
+        return this.invalidateSession;
+    }
+
+    public void invalidateSession() {
+        this.invalidateSession = true;
+    }
+
+    public ArrayList<String> getSessionRemove() {
+        return sessionRemove;
+    }
+
+    public void setSessionRemove(ArrayList<String> val) {
+        this.sessionRemove = val;
     }
 }
