@@ -9,6 +9,7 @@ package model;
 import java.util.HashMap;
 import etu1839.framework.annotation.AnnotationUrl;
 import etu1839.framework.ModelView;
+import java.util.ArrayList;
 
 /**
  *
@@ -26,7 +27,22 @@ public class Login {
     public ModelView login() {
         ModelView view = new ModelView("login.jsp");
 
-        System.out.println("etu1839.framework.Login.login()");
+        System.out.println("model.Login.login()");
+        
+        return view;
+    }
+
+    @AnnotationUrl(url = "logout")
+    public ModelView logout() {
+        ArrayList<String> remove = new ArrayList<String>();
+        remove.add("profil");
+        remove.add("idUser");
+        
+        ModelView view = new ModelView("login.jsp");
+        view.setSessionRemove(remove);
+        //view.invalidateSession();
+
+        System.out.println("model.Login.logout()");
         
         return view;
     }
@@ -37,7 +53,7 @@ public class Login {
         
         setAuthentification(view);
 
-        System.out.println("etu1839.framework.Login.checkLogin()");
+        System.out.println("model.Login.checkLogin()");
 
         System.out.println("Nom: " + this.nom);
         System.out.println("Mdp: " + this.mdp);
